@@ -48,7 +48,8 @@ app.post('/login', async (req, res) => {
 });
 
 // ---------------- CERTIFICATE ----------------
-// ---------------- CERTIFICATE ----------------
+const { spawn } = require('child_process');
+
 app.get('/certificate/:id', async (req, res) => {
   const { id } = req.params;
   const repo = AppDataSource.getRepository("Registrant");
@@ -63,45 +64,41 @@ app.get('/certificate/:id', async (req, res) => {
     else if (!user.AttendanceDay1 && user.AttendanceDay2) certFile = '2.pdf';
 
     const certPath = path.join(__dirname, 'certs', certFile);
-    const existingPdfBytes = fs.readFileSync(certPath);
 
-    // Load PDF
-    const pdfDoc = await PDFDocument.load(existingPdfBytes);
-    const pages = pdfDoc.getPages();
-    const firstPage = pages[0];
-    const { width, height } = firstPage.getSize();
+    // Call Python script
+    const python = spawn('python', [
+      path.join(__dirname, 'pdfeditor/pdfeditor.py'),
+      certPath,
+      user.Name
+    ]);
 
-    // Embed font
-    const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    let chunks = [];
 
-    // Prepare name text
-    const nameText = `Mr. ${user.Name}`;
-    const fontSize = 28;
-    const textWidth = font.widthOfTextAtSize(nameText, fontSize);
-
-    // Center horizontally, fixed vertical position
-    const x = (width - textWidth) / 2;
-    const y = height / 2 - 60; // adjust based on template design
-
-    firstPage.drawText(nameText, {
-      x,
-      y,
-      size: fontSize,
-      font,
-      color: rgb(0, 0, 0),
+    python.stdout.on('data', (data) => {
+      chunks.push(data);
     });
 
-    // Save & return PDF
-    const pdfBytes = await pdfDoc.save();
-    res.setHeader('Content-Disposition', `attachment; filename=certificate_${user.Name}.pdf`);
-    res.setHeader('Content-Type', 'application/pdf');
-    res.send(Buffer.from(pdfBytes));
+    python.stderr.on('data', (data) => {
+      console.error(`Python error: ${data}`);
+    });
+
+    python.on('close', (code) => {
+      if (code !== 0) {
+        return res.send('Error generating certificate');
+      }
+
+      const pdfBuffer = Buffer.concat(chunks);
+      res.setHeader('Content-Disposition', `attachment; filename=certificate_${user.Name}.pdf`);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.send(pdfBuffer);
+    });
 
   } catch (err) {
     console.error(err);
     res.send('Error generating certificate');
   }
 });
+
 
 
 app.listen(port, () => console.log(`Server running at http://localhost:${port}`));
