@@ -397,7 +397,7 @@ if __name__ == "__main__":
     editor = PDFNameEditor()
 
     # Generate certificate in-memory
-    output_path = "temp_output.pdf"
+    output_path = os.path.join(os.path.dirname(__file__),"temp_output.pdf")
     editor.edit_pdf_name(pdf_template, first, middle, last, output_path)
 
     # Read the file and write bytes to stdout

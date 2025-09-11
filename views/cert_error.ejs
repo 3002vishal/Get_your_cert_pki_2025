@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Error</title>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+  <script>
+    // Use SweetAlert for a modern popup
+    Swal.fire({
+      icon: 'error',
+      title: 'Certificate Generation Failed',
+      text: "<%= message %>",
+      confirmButtonText: 'Go Back'
+    }).then(() => {
+      window.location.href = "/";  // redirect after popup
+    });
+  </script>
+</body>
+</html>
