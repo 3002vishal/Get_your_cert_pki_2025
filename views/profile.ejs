@@ -1,41 +1,116 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>User Profile</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Profiles</title>
   <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      min-height: 100vh;
+    }
+
+    h2 {
+      text-align: center;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+    }
+
+    th {
+      background: #007bff;
+      color: #fff;
+    }
+
+    tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+
+    tr:hover {
+      background: #f1f1f1;
+    }
+
     .download-btn {
-      display: inline-flex;
-      align-items: center;
-      padding: 10px 15px;
+      padding: 8px 12px;
       background-color: #007bff;
       color: white;
       text-decoration: none;
-      border-radius: 8px;
-      font-size: 16px;
-      margin-top: 15px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: bold;
+      transition: background-color 0.3s, transform 0.2s;
     }
+
     .download-btn:hover {
       background-color: #0056b3;
-    }
-    .download-btn span {
-      margin-left: 8px;
+      transform: scale(1.05);
     }
   </style>
 </head>
 <body>
-  <h2>Welcome, <%= user.Name %>!</h2>
-  <p><strong>Designation:</strong> <%= user.Designation %></p>
-  <p><strong>Organization:</strong> <%= user.Organization %></p>
-  <p><strong>Email:</strong> <%= user.Email %></p>
-  <p><strong>Mobile:</strong> <%= user.Mobile %></p>
-  <p><strong>City:</strong> <%= user.City %></p>
-  <p><strong>Mode:</strong> <%= user.Mode %></p>
-  <p><strong>Attendance Day 1:</strong> <%= user.AttendanceDay1 %></p>
-  <p><strong>Attendance Day 2:</strong> <%= user.AttendanceDay2 %></p>
+  <h2>User Profiles 🎉</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Designation</th>
+        <th>Organization</th>
+        <th>Email</th>
+        <th>Mobile</th>
+        <th>City</th>
+        <th>Mode</th>
+        <th>Day 1</th>
+        <th>Day 2</th>
+        <th>Certificate</th>
+      </tr>
+    </thead>
+  <tbody>
+  <% users.forEach(user => { %>
+    <tr>
+      <td><%= user.Name %></td>
+      <td><%= user.Designation %></td>
+      <td><%= user.Organization %></td>
+      <td><%= user.Email %></td>
+      <td><%= user.Mobile %></td>
+      <td><%= user.City %></td>
+      <td><%= user.Mode %></td>
+      <td>
+        <% if (user.AttendanceDay1) { %>
+          <span style="color: green; font-weight: bold;">✔</span>
+        <% } else { %>
+          <span style="color: red; font-weight: bold;">✘</span>
+        <% } %>
+      </td>
+      <td>
+        <% if (user.AttendanceDay2) { %>
+          <span style="color: green; font-weight: bold;">✔</span>
+        <% } else { %>
+          <span style="color: red; font-weight: bold;">✘</span>
+        <% } %>
+      </td>
+      <td>
+        <a href="/certificate/<%= user.Id %>" class="download-btn">⬇ Download</a>
+      </td>
+    </tr>
+  <% }) %>
+</tbody>
 
-  <!-- Download Certificate Button -->
-  <a href="/certificate/<%= user.Id %>" class="download-btn">
-    ⬇ <span>Download Certificate</span>
-  </a>
+  </table>
 </body>
 </html>
