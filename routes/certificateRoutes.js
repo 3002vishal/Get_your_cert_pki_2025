@@ -25,7 +25,6 @@ router.get('/certificate/:id',async (req , res) =>
         else return res.render("cert_error",{message: "You did not attend the PKI 2025 conference , certificate could not be provided"});
 
         const certPath = path.join(__dirname, '../certs', certFile);  // creating certificate path
-
         //--calling the python as subprocess to generate the certificate 
 
         const python = spawn('python', [

@@ -16,10 +16,10 @@ class PDFNameEditor:
     Supports first name, middle name, and last name as separate arguments
     """
     
-    def __init__(self):
+    def _init_(self):
         self.temp_files = []
     
-    def __del__(self):
+    def _del_(self):
         """Clean up temporary files"""
         for temp_file in self.temp_files:
             try:
@@ -28,58 +28,115 @@ class PDFNameEditor:
             except:
                 pass
     
-    def _format_full_name(self, first_name: str, middle_name: str = "", last_name: str = "") -> str:
+    # def _format_full_name(self, first_name: str, middle_name: str = "", last_name: list=[]) -> str:
+    #     """
+    #     Format the full name from individual components
+    #     """
+    #     name_parts = [name.strip() for name in [first_name, middle_name, last_name] if name and name.strip()]
+    #     return " ".join(name_parts)
+    def _format_full_name(self, first_name: str, middle_name: str = "", last_name=None) -> str:
         """
-        Format the full name from individual components
-        
-        Args:
-            first_name: First name (required)
-            middle_name: Middle name (optional)
-            last_name: Last name (optional)
-        
-        Returns:
-            Properly formatted full name
+        Format the full name from individual components.
+        Supports last_name as a string or a list of strings.
         """
-        # Remove extra whitespace and filter out empty strings
+        if isinstance(last_name, list):  
+            # join all last names with space
+            last_name = " ".join([ln.strip() for ln in last_name if ln and ln.strip()])
+        elif isinstance(last_name, str):
+            last_name = last_name.strip()
+        else:
+            last_name = ""
+
         name_parts = [name.strip() for name in [first_name, middle_name, last_name] if name and name.strip()]
         return " ".join(name_parts)
+
     
-    def method1_pymupdf_text_replacement(self, pdf_path: str, first_name: str, middle_name: str, last_name: str, output_path: str) -> bool:
+    def _choose_reportlab_font(self, py_font_alias: str) -> str:
+        """Map PyMuPDF font alias to a ReportLab font name for width measurement."""
+        mapping = {
+            "helv": "Helvetica",
+            "helv-bold": "Helvetica-Bold",
+            "Times-Bold": "Times-Bold",
+            "Arial-Bold": "Helvetica-Bold",
+            "tiro-bold": "Helvetica-Bold"
+        }
+        return mapping.get(py_font_alias, "Helvetica")
+
+    def _calc_font_and_x_for_center(self, page, text: str, max_fontsize: int, min_fontsize: int,
+                                    margin_ratio: float, reportlab_font: str) -> Tuple[int, float, float]:
         """
-        Method 1: Direct text replacement using PyMuPDF (best for text-based PDFs)
+        Determine the largest fontsize (between max and min) such that text_width <= page_width - margins.
+        Returns (fontsize, text_width, x_start).
         """
+        page_width = page.rect.width
+        margin = page_width * margin_ratio
+        usable_width = max(10, page_width - 2 * margin)
+
+        fontsize = max_fontsize
+        text_width = 0.0
+
+        while fontsize >= min_fontsize:
+            text_width = pdfmetrics.stringWidth(text, reportlab_font, fontsize)
+            if text_width <= usable_width:
+                break
+            fontsize -= 1
+
+        x_start = (page_width - text_width) / 2.0
+        return fontsize, text_width, x_start
+
+    def _draw_centered_text(self, page, text: str, y: float,
+                            max_fontsize: int = 36, min_fontsize: int = 10,
+                            margin_ratio: float = 0.05, py_font_alias: str = "helv"):
+        """
+        Draw text centered horizontally on the page at vertical position y.
+        """
+        reportlab_font = self._choose_reportlab_font(py_font_alias)
+
+        fontsize, text_width, x_start = self._calc_font_and_x_for_center(
+            page, text, max_fontsize, min_fontsize, margin_ratio, reportlab_font
+        )
+
+        y_baseline_offset_ratio = 0.25
+        y_baseline = max(0, y - (fontsize * y_baseline_offset_ratio))
+
+        pymupdf_fontname = py_font_alias if py_font_alias in ("helv", "helv-bold", "Times-Bold", "Arial-Bold") else "helv"
+
+        page.insert_text(
+            point=(x_start, y_baseline),
+            text=text,
+            fontsize=fontsize,
+            fontname=pymupdf_fontname,
+            color=(0, 0, 0)
+        )
+
+    # def method1_pymupdf_text_replacement(self, pdf_path: str, first_name: str, middle_name: str, last_name: str, output_path: str) -> bool:
+        """
+        Method 1: Direct text replacement using PyMuPDF
+        
+        """
+        print("fdlkjljfsalkdfasjlkjalsdjflkdsadjfljalfjlajfalfjlasfj")
         try:
+            
             doc = fitz.open(pdf_path)
             full_name = self._format_full_name(first_name, middle_name, last_name)
             
             for page_num in range(len(doc)):
                 page = doc.load_page(page_num)
-                
-                # Find and replace text - supports multiple placeholder formats
                 placeholders = ["{{name}}", "XXXX", "{name}", "[name]"]
                 
                 for placeholder in placeholders:
                     text_instances = page.search_for(placeholder)
                     
                     for inst in text_instances:
-                        # Add redaction annotation to remove old text
                         redact = page.add_redact_annot(inst)
-                        redact.set_colors(stroke=(1, 1, 1), fill=(1, 1, 1))  # White color
+                        redact.set_colors(stroke=(1, 1, 1), fill=(1, 1, 1))
                         redact.update()
                     
-                    # Apply redactions
                     if text_instances:
                         page.apply_redactions()
                     
-                    # Add new text
                     for inst in text_instances:
-                        page.insert_text(
-                            point=(inst.x0, inst.y1 - 5),  # Adjust position slightly
-                            text=full_name,
-                            fontsize=27,
-                            color=(0, 0, 0),  # Black color
-                            fontname="helv"
-                        )
+                        self._draw_centered_text(page, full_name, y=inst.y1)
             
             doc.save(output_path)
             doc.close()
@@ -89,52 +146,41 @@ class PDFNameEditor:
             print(f"Method 1 failed: {e}")
             return False
 
-    def method2_overlay_approach(self, pdf_path: str, first_name: str, middle_name: str, last_name: str, output_path: str) -> bool:
         """
         Method 2: Overlay approach with bold font support
-        """
+        """        
+        print('inside 2')
+
         try:
             doc = fitz.open(pdf_path)
             full_name = self._format_full_name(first_name, middle_name, last_name)
-        
+            
             for page_num in range(len(doc)):
                 page = doc.load_page(page_num)
-                
-                # Support multiple placeholder formats
                 placeholders = ["XXXX"]
                 
                 for placeholder in placeholders:
                     text_instances = page.search_for(placeholder)
                     
                     for inst in text_instances:
-                        # Calculate rectangle size based on name length
                         name_length = len(full_name)
-                        width_extension = max(80, name_length * 8)  # Dynamic width
+                        width_extension = max(80, name_length * 8)
                         
-                        # Cover old text
                         rect = fitz.Rect(inst.x0 - 5, inst.y0 - 3, inst.x1 + width_extension, inst.y1 + 3)
                         page.draw_rect(rect, color=(1, 1, 1), fill=(1, 1, 1))
                     
-                        # Try bold fonts
                         bold_fonts = ["helv-bold", "tiro-bold", "Times-Bold", "Arial-Bold"]
                         bold_success = False
                     
                         for font in bold_fonts:
                             try:
-                                page.insert_text(
-                                    point=(inst.x0, inst.y1 - 2),
-                                    text=full_name,
-                                    fontsize=36,
-                                    color=(0, 0, 0),
-                                    fontname=font
-                                )
+                                self._draw_centered_text(page, full_name, y=inst.y1)
                                 bold_success = True
                                 print(f"✓ Used font: {font} for name: {full_name}")
                                 break
                             except Exception:
                                 continue
                     
-                        # If bold fails, simulate bold with multiple text layers
                         if not bold_success:
                             print(f"⚠ Bold fonts failed, simulating bold for: {full_name}")
                             offsets = [(0, 0), (0.3, 0), (0, 0.3), (0.3, 0.3)]
@@ -154,7 +200,69 @@ class PDFNameEditor:
             print(f"Method 2 failed: {e}")
             return False    
 
-    def method3_form_field_approach(self, pdf_path: str, first_name: str, middle_name: str, last_name: str, output_path: str) -> bool:
+    def method2_overlay_approach(self, pdf_path: str, first_name: str, middle_name: str, last_name: str, output_path: str) -> bool:
+        """
+        Method 2: Overlay approach with automatic centering and font scaling.
+        """
+        try:
+            doc = fitz.open(pdf_path)
+            full_name = self._format_full_name(first_name, middle_name, last_name)
+
+            for page_num in range(len(doc)):
+                page = doc.load_page(page_num)
+                placeholders = ["XXXX", "{{name}}", "{name}", "[name]"]
+
+                for placeholder in placeholders:
+                    text_instances = page.search_for(placeholder)
+
+                    for inst in text_instances:
+                        name_length = len(full_name)
+                        width_extension = max(80, name_length * 8)
+                        rect = fitz.Rect(inst.x0 - 5, inst.y0 - 3, inst.x1 + width_extension, inst.y1 + 3)
+
+                        page.draw_rect(rect, color=(1, 1, 1), fill=(1, 1, 1))
+
+                        bold_fonts = ["Times-Bold"]
+                        bold_success = False
+
+                        for font_alias in bold_fonts:
+                            try:
+                                self._draw_centered_text(
+                                    page,
+                                    full_name,
+                                    y=inst.y1 - 2,
+                                    max_fontsize=36,
+                                    min_fontsize=10,
+                                    margin_ratio=0.06,
+                                    py_font_alias=font_alias
+                                )
+                                bold_success = True
+                                print(f"✓ Used font (approx): {font_alias} for name: {full_name}")
+                                break
+                            except Exception:
+                                continue
+
+                        if not bold_success:
+                            print(f"⚠ Bold fonts failed / unexpected error; falling back to simple centered text for: {full_name}")
+                            self._draw_centered_text(
+                                page,
+                                full_name,
+                                y=inst.y1 - 2,
+                                max_fontsize=28,
+                                min_fontsize=8,
+                                margin_ratio=0.06,
+                                py_font_alias="helv"
+                            )
+
+            doc.save(output_path)
+            doc.close()
+            return True
+
+        except Exception as e:
+            print(f"Method 2 failed: {e}")
+            return False
+
+    # def method3_form_field_approach(self, pdf_path: str, first_name: str, middle_name: str, last_name: str, output_path: str) -> bool:
         """
         Method 3: Handle PDF forms (if the PDF has form fields)
         """
@@ -164,8 +272,6 @@ class PDFNameEditor:
             
             for page_num in range(len(doc)):
                 page = doc.load_page(page_num)
-                
-                # Check for form fields
                 widgets = page.widgets()
                 
                 for widget in widgets:
@@ -181,7 +287,7 @@ class PDFNameEditor:
             print(f"Method 3 failed: {e}")
             return False
     
-    def method4_advanced_text_replacement(self, pdf_path: str, first_name: str, middle_name: str, last_name: str, output_path: str) -> bool:
+    # def method4_advanced_text_replacement(self, pdf_path: str, first_name: str, middle_name: str, last_name: str, output_path: str) -> bool:
         """
         Method 4: Advanced approach with better text matching and replacement
         """
@@ -191,8 +297,6 @@ class PDFNameEditor:
             
             for page_num in range(len(doc)):
                 page = doc.load_page(page_num)
-                
-                # Get all text with detailed information
                 blocks = page.get_text("dict")
                 
                 placeholders = ["{{name}}", "XXXX", "{name}", "[name]"]
@@ -203,25 +307,18 @@ class PDFNameEditor:
                         for line in block["lines"]:
                             for span in line["spans"]:
                                 text = span["text"]
-                                
-                                # Check if any placeholder exists in this text
                                 for placeholder in placeholders:
                                     if placeholder in text:
-                                        # Get font information
                                         font_size = span["size"]
                                         font_flags = span["flags"]
                                         bbox = span["bbox"]
                                         
-                                        # Remove old text
                                         redact_rect = fitz.Rect(bbox)
                                         redact = page.add_redact_annot(redact_rect)
-                                        redact.set_colors(fill=(1, 1, 1))  # White fill
+                                        redact.set_colors(fill=(1, 1, 1))
                                         redact.update()
                                         
-                                        # Replace text
                                         new_text = text.replace(placeholder, full_name)
-                                        
-                                        # Store replacement info
                                         replacement_info = {
                                             'rect': bbox,
                                             'text': new_text,
@@ -229,13 +326,11 @@ class PDFNameEditor:
                                             'flags': font_flags
                                         }
                                         replacements_made = True
-                                        break  # Found placeholder, no need to check others
+                                        break
                 
                 if replacements_made:
-                    # Apply redactions first
                     page.apply_redactions()
                     
-                    # Re-analyze and add text
                     blocks = page.get_text("dict")
                     for block in blocks["blocks"]:
                         if "lines" in block:
@@ -246,7 +341,6 @@ class PDFNameEditor:
                                         if placeholder in text:
                                             bbox = span["bbox"]
                                             font_size = span["size"]
-                                            
                                             new_text = text.replace(placeholder, full_name)
                                             
                                             page.insert_text(
@@ -267,29 +361,26 @@ class PDFNameEditor:
     
     def edit_pdf_name(self, pdf_path: str, first_name: str, middle_name: str = "", last_name: str = "", output_path: str = None) -> str:
         """
-        Main function to edit PDF name - tries multiple methods for best compatibility
-        
-        Args:
-            pdf_path: Path to input PDF
-            first_name: First name (required)
-            middle_name: Middle name (optional)
-            last_name: Last name (optional)
-            output_path: Optional output path, if None creates based on input name
-            
-        Returns:
-            Path to the edited PDF file
+        Main function to edit PDF name
         """
+        print('inside edit_pdf_name')
         if output_path is None:
             base_name = os.path.splitext(pdf_path)[0]
-            full_name_for_filename = self._format_full_name(first_name, middle_name, last_name).replace(" ", "_")
+            full_name_for_filename = self.format_full_name(first_name, middle_name, last_name).replace(" ", "")
             output_path = f"{base_name}_{full_name_for_filename}_edited.pdf"
         
-        # Try methods in order of effectiveness
         methods = [
+             
+           
+            # ("Direct Text Replacement", self.method1_pymupdf_text_replacement),
             ("Overlay Approach", self.method2_overlay_approach),
-            ("Direct Text Replacement", self.method1_pymupdf_text_replacement),
-            ("Form Field Approach", self.method3_form_field_approach),
-            ("Advanced Text Replacement", self.method4_advanced_text_replacement)
+           
+            #("Direct Text Replacement", self.method1_pymupdf_text_replacement)
+            # ("Form Field Approach", self.method3_form_field_approach),
+            # ("Advanced Text Replacement", self.method4_advanced_text_replacement),
+            
+            
+            
         ]
         
         full_name = self._format_full_name(first_name, middle_name, last_name)
@@ -306,11 +397,6 @@ class PDFNameEditor:
     def batch_process_certificates(self, pdf_template_path: str, name_list: list, output_dir: str = None):
         """
         Process multiple certificates with different names
-        
-        Args:
-            pdf_template_path: Path to template PDF
-            name_list: List of tuples (first_name, middle_name, last_name) or (first_name, last_name)
-            output_dir: Directory to save edited PDFs
         """
         if output_dir is None:
             output_dir = os.path.dirname(pdf_template_path)
@@ -321,7 +407,6 @@ class PDFNameEditor:
         
         for name_tuple in name_list:
             try:
-                # Handle both 2-tuple (first, last) and 3-tuple (first, middle, last)
                 if len(name_tuple) == 2:
                     first_name, last_name = name_tuple
                     middle_name = ""
@@ -345,61 +430,40 @@ class PDFNameEditor:
         return results
 
 
-
-
-
-def create_simple_function_interface():
-    """Simple function interface for easy integration"""
-    
-    def create_certificate(pdf_template_path: str, first_name: str, middle_name: str = "", last_name: str = "", output_path: str = None) -> str:
-        """
-        Simple function to create a personalized certificate
+    # def create_simple_function_interface():
+    #     """Simple function interface for easy integration"""
         
-        Args:
-            pdf_template_path: Path to your PDF template
-            first_name: First name (required)
-            middle_name: Middle name (optional)
-            last_name: Last name (optional)
-            output_path: Where to save (optional)
-            
-        Returns:
-            Path to created certificate
-        """
-        editor = PDFNameEditor()
-        return editor.edit_pdf_name(pdf_template_path, first_name, middle_name, last_name, output_path)
-    
-    return create_certificate
+    #     def create_certificate(pdf_template_path: str, first_name: str, middle_name: str = "", last_name: str = "", output_path: str = None) -> str:
+    #         editor = PDFNameEditor()
+    #         return editor.edit_pdf_name(pdf_template_path, first_name, middle_name, last_name, output_path)
+
+    #     return create_certificate
 
 
-# Installation requirements
 REQUIREMENTS = """
 # Required packages (install with pip):
 pip install PyMuPDF reportlab Pillow
-
-# PyMuPDF is the main library for PDF manipulation
-# reportlab is for creating PDF overlays if needed
-# Pillow is for image processing support
 """
 
 import sys
 import io
 
 if __name__ == "__main__":
-    pdf_template = sys.argv[1]     # template path from Node.js
-    full_name   = sys.argv[2]      # e.g. "Vishal Kumar"
+    pdf_template = sys.argv[1]
+    full_name   = sys.argv[2]
+    print("="*50)
+    print('inside pdfeditor')
+    print("="*50)
 
-    # Split into parts if you want first/middle/last
     parts = full_name.split()
-    first = parts[0] if len(parts) > 0 else ""
-    middle = parts[1] if len(parts) == 3 else ""
-    last = parts[-1] if len(parts) > 1 else ""
+    # first = parts[0] if len(parts) > 0 else ""
+    first =parts[0]
+    middle = parts[1] if len(parts) >1 else ""
+    last = parts[2:] if len(parts) > 2 else ""
 
     editor = PDFNameEditor()
-
-    # Generate certificate in-memory
     output_path = os.path.join(os.path.dirname(__file__),"temp_output.pdf")
     editor.edit_pdf_name(pdf_template, first, middle, last, output_path)
 
-    # Read the file and write bytes to stdout
     with open(output_path, "rb") as f:
         sys.stdout.buffer.write(f.read())
