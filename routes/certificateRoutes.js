@@ -54,10 +54,7 @@ router.get('/certificate/:id',async (req , res) =>
             res.setHeader('Content-Disposition', `attachment; filename=certificate_${user.Name}.pdf`);  // sets Http header to that browser downloads the file
             res.setHeader('Content-Type', 'application/pdf'); // tells browser it's a pdf
             res.send(pdfBuffer);
-
         });
-
-
     }
     catch(err){
         console.error(err);

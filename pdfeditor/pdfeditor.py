@@ -28,12 +28,7 @@ class PDFNameEditor:
             except:
                 pass
     
-    # def _format_full_name(self, first_name: str, middle_name: str = "", last_name: list=[]) -> str:
-    #     """
-    #     Format the full name from individual components
-    #     """
-    #     name_parts = [name.strip() for name in [first_name, middle_name, last_name] if name and name.strip()]
-    #     return " ".join(name_parts)
+    
     def _format_full_name(self, first_name: str, middle_name: str = "", last_name=None) -> str:
         """
         Format the full name from individual components.
@@ -109,96 +104,7 @@ class PDFNameEditor:
             color=(0, 0, 0)
         )
 
-    # def method1_pymupdf_text_replacement(self, pdf_path: str, first_name: str, middle_name: str, last_name: str, output_path: str) -> bool:
-        """
-        Method 1: Direct text replacement using PyMuPDF
-        
-        """
-        print("fdlkjljfsalkdfasjlkjalsdjflkdsadjfljalfjlajfalfjlasfj")
-        try:
-            
-            doc = fitz.open(pdf_path)
-            full_name = self._format_full_name(first_name, middle_name, last_name)
-            
-            for page_num in range(len(doc)):
-                page = doc.load_page(page_num)
-                placeholders = ["{{name}}", "XXXX", "{name}", "[name]"]
-                
-                for placeholder in placeholders:
-                    text_instances = page.search_for(placeholder)
-                    
-                    for inst in text_instances:
-                        redact = page.add_redact_annot(inst)
-                        redact.set_colors(stroke=(1, 1, 1), fill=(1, 1, 1))
-                        redact.update()
-                    
-                    if text_instances:
-                        page.apply_redactions()
-                    
-                    for inst in text_instances:
-                        self._draw_centered_text(page, full_name, y=inst.y1)
-            
-            doc.save(output_path)
-            doc.close()
-            return True
-            
-        except Exception as e:
-            print(f"Method 1 failed: {e}")
-            return False
-
-        """
-        Method 2: Overlay approach with bold font support
-        """        
-        print('inside 2')
-
-        try:
-            doc = fitz.open(pdf_path)
-            full_name = self._format_full_name(first_name, middle_name, last_name)
-            
-            for page_num in range(len(doc)):
-                page = doc.load_page(page_num)
-                placeholders = ["XXXX"]
-                
-                for placeholder in placeholders:
-                    text_instances = page.search_for(placeholder)
-                    
-                    for inst in text_instances:
-                        name_length = len(full_name)
-                        width_extension = max(80, name_length * 8)
-                        
-                        rect = fitz.Rect(inst.x0 - 5, inst.y0 - 3, inst.x1 + width_extension, inst.y1 + 3)
-                        page.draw_rect(rect, color=(1, 1, 1), fill=(1, 1, 1))
-                    
-                        bold_fonts = ["helv-bold", "tiro-bold", "Times-Bold", "Arial-Bold"]
-                        bold_success = False
-                    
-                        for font in bold_fonts:
-                            try:
-                                self._draw_centered_text(page, full_name, y=inst.y1)
-                                bold_success = True
-                                print(f"✓ Used font: {font} for name: {full_name}")
-                                break
-                            except Exception:
-                                continue
-                    
-                        if not bold_success:
-                            print(f"⚠ Bold fonts failed, simulating bold for: {full_name}")
-                            offsets = [(0, 0), (0.3, 0), (0, 0.3), (0.3, 0.3)]
-                            for dx, dy in offsets:
-                                page.insert_text(
-                                    point=(inst.x0 + dx, inst.y1 - 2 + dy),
-                                    text=full_name,
-                                    fontsize=36,
-                                    color=(0, 0, 0)
-                                )
-        
-            doc.save(output_path)
-            doc.close()
-            return True
-        
-        except Exception as e:
-            print(f"Method 2 failed: {e}")
-            return False    
+     
 
     def method2_overlay_approach(self, pdf_path: str, first_name: str, middle_name: str, last_name: str, output_path: str) -> bool:
         """
