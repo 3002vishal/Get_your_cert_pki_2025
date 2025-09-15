@@ -315,120 +315,117 @@
       background: linear-gradient(135deg, #5a67d8, #6b46c1);
     }
 
-    /* Responsive design */
-    @media (max-width: 1200px) {
-      .container {
-        padding: 30px 15px;
-      }
-    }
+   /* Responsive design */
+@media (max-width: 1200px) {
+  .container {
+    padding: 30px 15px;
+  }
+}
 
-    @media (max-width: 768px) {
-      .container {
-        padding: 20px 10px;
-      }
+@media (max-width: 768px) {
+  .container {
+    padding: 20px 10px;
+  }
 
-      .header h1 {
-        font-size: 2rem;
-        margin-bottom: 8px;
-      }
+  .header h1 {
+    font-size: 2rem;
+    margin-bottom: 8px;
+  }
 
-      .header p {
-        font-size: 1rem;
-      }
+  .header p {
+    font-size: 1rem;
+  }
 
-      .header {
-        margin-bottom: 30px;
-      }
+  .header {
+    margin-bottom: 30px;
+  }
 
-      .table-container {
-        border-radius: 15px;
-        margin: 0 -10px;
-      }
+  .table-container {
+    border-radius: 15px;
+    margin: 0 auto;  /* ✅ keep centered */
+    overflow-x: auto;  /* ✅ allow horizontal scroll */
+    -webkit-overflow-scrolling: touch;
+  }
 
-      table {
-        min-width: 700px;
-      }
+  table {
+    display: block;   /* ✅ force block scroll on small screen */
+    min-width: 600px; /* ✅ keep readable, but shrink */
+    margin: 0 auto;   /* ✅ center table inside scroll */
+  }
 
-      th {
-        padding: 15px 12px;
-        font-size: 0.85rem;
-      }
+  th, td {
+    padding: 12px;
+    font-size: 0.85rem;
+  }
 
-      td {
-        padding: 12px;
-        font-size: 0.85rem;
-      }
+  .download-btn {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    gap: 4px;
+  }
 
-      .download-btn {
-        padding: 8px 12px;
-        font-size: 0.8rem;
-        gap: 4px;
-      }
+  .status-check {
+    width: 28px;
+    height: 28px;
+    font-size: 1rem;
+  }
 
-      .status-check {
-        width: 28px;
-        height: 28px;
-        font-size: 1rem;
-      }
+  tr:hover {
+    transform: none;
+  }
+}
 
-      tr:hover {
-        transform: none;
-      }
-    }
+@media (max-width: 480px) {
+  .container {
+    padding: 15px 5px;
+  }
 
-    @media (max-width: 480px) {
-      .container {
-        padding: 15px 5px;
-      }
+  .header h1 {
+    font-size: 1.5rem;
+  }
 
-      .header h1 {
-        font-size: 1.5rem;
-      }
+  .header p {
+    font-size: 0.9rem;
+  }
 
-      .header p {
-        font-size: 0.9rem;
-      }
+  .table-container {
+    border-radius: 10px;
+    margin: 0 auto;   /* ✅ still centered */
+    overflow-x: auto;
+  }
 
-      .table-container {
-        border-radius: 10px;
-        margin: 0 -5px;
-      }
+  table {
+    min-width: 500px; /* ✅ shrink more */
+    margin: 0 auto;
+  }
 
-      table {
-        min-width: 600px;
-      }
+  th, td {
+    padding: 10px 6px;
+    font-size: 0.75rem;
+  }
 
-      th {
-        padding: 12px 8px;
-        font-size: 0.75rem;
-      }
+  .download-btn {
+    padding: 6px 8px;
+    font-size: 0.7rem;
+  }
 
-      td {
-        padding: 10px 8px;
-        font-size: 0.75rem;
-      }
+  .status-check {
+    width: 24px;
+    height: 24px;
+    font-size: 0.9rem;
+  }
 
-      .download-btn {
-        padding: 6px 8px;
-        font-size: 0.7rem;
-      }
+  .search-input {
+    padding: 12px 40px 12px 16px;
+    font-size: 0.9rem;
+  }
 
-      .status-check {
-        width: 24px;
-        height: 24px;
-        font-size: 0.9rem;
-      }
+  .search-icon {
+    right: 15px;
+    font-size: 1rem;
+  }
+}
 
-      .search-input {
-        padding: 12px 40px 12px 16px;
-        font-size: 0.9rem;
-      }
-
-      .search-icon {
-        right: 15px;
-        font-size: 1rem;
-      }
-    }
   </style>
 </head>
 
