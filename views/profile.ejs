@@ -118,23 +118,21 @@
       }
     }
 
-
-
     .table-container {
       background: rgba(255, 255, 255, 0.95);
-      width: max-content;
       backdrop-filter: blur(20px);
       border-radius: 20px;
-      overflow:hidden;
+      overflow: auto;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
       border: 1px solid rgba(255, 255, 255, 0.2);
       animation: fadeInUp 0.8s ease-out 0.4s both;
+      width: 100%;
     }
 
     table {
       width: 100%;
+      min-width: 800px;
       border-collapse: collapse;
-      overflow-x: auto;
     }
 
     th {
@@ -146,6 +144,7 @@
       font-size: 0.95rem;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      white-space: nowrap;
       position: sticky;
       top: 0;
       z-index: 10;
@@ -156,6 +155,7 @@
       border-bottom: 1px solid rgba(226, 232, 240, 0.5);
       font-size: 0.95rem;
       color: #334155;
+      white-space: nowrap;
     }
 
     tr {
@@ -168,7 +168,7 @@
 
     tr:hover {
       background: rgba(99, 102, 241, 0.08);
-      transform: scale(1.02);
+      transform: scale(1.01);
       box-shadow: 0 4px 20px rgba(99, 102, 241, 0.1);
     }
 
@@ -195,9 +195,6 @@
       box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
     }
 
-    #userTable{
-      overflow: auto;
-    }
     .download-btn {
       display: inline-flex;
       align-items: center;
@@ -211,6 +208,7 @@
       font-weight: 600;
       transition: all 0.3s ease;
       box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      white-space: nowrap;
     }
 
     .download-btn:hover {
@@ -282,37 +280,19 @@
       }
     }
 
-    /* Responsive design */
-    @media (max-width: 768px) {
-      .container {
-        padding: 20px 10px;
+    .fade-in-row {
+      animation: fadeInRow 0.6s ease-out both;
+    }
+
+    @keyframes fadeInRow {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
       }
 
-      .header h1 {
-        font-size: 2rem;
-      }
-
-      .header p {
-        font-size: 1rem;
-      }
-
-      .table-container {
-        margin: 0 -10px;
-        border-radius: 0;
-      }
-
-      table {
-        font-size: 0.85rem;
-      }
-
-      th,
-      td {
-        padding: 12px 8px;
-      }
-
-      .download-btn {
-        padding: 8px 12px;
-        font-size: 0.8rem;
+      to {
+        opacity: 1;
+        transform: translateX(0);
       }
     }
 
@@ -334,6 +314,121 @@
     ::-webkit-scrollbar-thumb:hover {
       background: linear-gradient(135deg, #5a67d8, #6b46c1);
     }
+
+    /* Responsive design */
+    @media (max-width: 1200px) {
+      .container {
+        padding: 30px 15px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px 10px;
+      }
+
+      .header h1 {
+        font-size: 2rem;
+        margin-bottom: 8px;
+      }
+
+      .header p {
+        font-size: 1rem;
+      }
+
+      .header {
+        margin-bottom: 30px;
+      }
+
+      .table-container {
+        border-radius: 15px;
+        margin: 0 -10px;
+      }
+
+      table {
+        min-width: 700px;
+      }
+
+      th {
+        padding: 15px 12px;
+        font-size: 0.85rem;
+      }
+
+      td {
+        padding: 12px;
+        font-size: 0.85rem;
+      }
+
+      .download-btn {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        gap: 4px;
+      }
+
+      .status-check {
+        width: 28px;
+        height: 28px;
+        font-size: 1rem;
+      }
+
+      tr:hover {
+        transform: none;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 15px 5px;
+      }
+
+      .header h1 {
+        font-size: 1.5rem;
+      }
+
+      .header p {
+        font-size: 0.9rem;
+      }
+
+      .table-container {
+        border-radius: 10px;
+        margin: 0 -5px;
+      }
+
+      table {
+        min-width: 600px;
+      }
+
+      th {
+        padding: 12px 8px;
+        font-size: 0.75rem;
+      }
+
+      td {
+        padding: 10px 8px;
+        font-size: 0.75rem;
+      }
+
+      .download-btn {
+        padding: 6px 8px;
+        font-size: 0.7rem;
+      }
+
+      .status-check {
+        width: 24px;
+        height: 24px;
+        font-size: 0.9rem;
+      }
+
+      .search-input {
+        padding: 12px 40px 12px 16px;
+        font-size: 0.9rem;
+      }
+
+      .search-icon {
+        right: 15px;
+        font-size: 1rem;
+      }
+    }
   </style>
 </head>
 
@@ -342,8 +437,6 @@
     <div class="header">
       <h1>User Profiles Dashboard </h1>
     </div>
-
-
 
     <div class="table-container">
       <table id="userTable">
@@ -391,14 +484,14 @@
                 <%= user.Mode %>
               </td>
               <td>
-                <% if (user.AttendanceDay1) { %>
+                <% if (user.Day1) { %>
                   <span class="status-check status-present">✓</span>
                   <% } else { %>
                     <span class="status-check status-absent">✗</span>
                     <% } %>
               </td>
               <td>
-                <% if (user.AttendanceDay2) { %>
+                <% if (user.Day2) { %>
                   <span class="status-check status-present">✓</span>
                   <% } else { %>
                     <span class="status-check status-absent">✗</span>
@@ -406,7 +499,7 @@
               </td>
               <td>
                 <a href="/certificate/<%= user.Id %>" class="download-btn">
-                  <span>📜</span>
+                  <span>⬇️</span>
                   Download
                 </a>
               </td>
@@ -485,24 +578,6 @@
       });
     });
   </script>
-
-  <style>
-    .fade-in-row {
-      animation: fadeInRow 0.6s ease-out both;
-    }
-
-    @keyframes fadeInRow {
-      from {
-        opacity: 0;
-        transform: translateX(-20px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-  </style>
 </body>
 
 </html>

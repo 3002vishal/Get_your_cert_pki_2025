@@ -8,7 +8,7 @@ const AppDataSource = new DataSource({
   password: "Gate2025@",         // MySQL password
   database: "pkia",              // your database name
   synchronize: true,             // auto-create tables (disable in production)
-  logging: true,                 // log SQL queries
+  logging: false,                 // log SQL queries
   entities: [__dirname + "/entity/*.js"], // entity folder
 });
 

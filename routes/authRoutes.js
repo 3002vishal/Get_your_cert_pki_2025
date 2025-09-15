@@ -14,42 +14,32 @@ router.post('/login', async (req, res) => {
     const isEmail = identifier.includes('@');  // ✅ Check if it's email
 
     try {
-        const users = await repo.find({
-            where: isEmail
-                ? { Email: identifier }
-                : { Mobile: identifier },
-            select: [
-                "Id",
-                "Name",
-                "Designation",
-                "Organization",
-                ...(isEmail ? ["Email"] : ["Mobile"]),  // ✅ Pick one
-                "City",
-                "Mode",
-                "AttendanceDay1",
-                "AttendanceDay2"
-            ]
-        });
+        const users = await repo
+            .createQueryBuilder("user")
+            .select([
+                "user.Id AS Id",
+                "user.Name AS Name",
+                "user.Designation AS Designation",
+                "user.Organization AS Organization",
+                isEmail ? "user.Email AS Email" : "user.Mobile AS Mobile",
+                "user.City AS City",
+                "user.Mode AS Mode",
+                "user.AttendanceDay1 AS Day1",
+                "user.AttendanceDay2 AS Day2"
+            ])
+            .where(isEmail ? "user.Email = :identifier" : "user.Mobile = :identifier", { identifier })
+            .getRawMany();
 
         if (users.length === 0) {
-            return res.render('login', { error: "invalid credential" });
+            return res.render('login', { error: "Invalid credential" });
         }
-
-        // ✅ Only allow if attended at least one day
-        const response = users.filter(
-            data => data.AttendanceDay1 || data.AttendanceDay2
-        );
-
-        if (response.length > 0) {
-            res.render('profile', { users: response });
-        } else {
-            res.render('login', { error: 'You did not attend the conference' });
-        }
+        else  {
+            res.render('profile', { users });
+        } 
     } catch (err) {
         console.error(err);
         res.send('Database error');
     }
 });
-
 
 module.exports = router;
