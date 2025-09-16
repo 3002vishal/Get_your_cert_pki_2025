@@ -8,7 +8,7 @@ router.get('/', (req, res) => {
     res.render('login', { error: null });
 });
 
-router.post('/login', async (req, res) => {
+router.post('/profile', async (req, res) => {
     const { identifier } = req.body;
     const repo = AppDataSource.getRepository("Registrant");
     const isEmail = identifier.includes('@');  // ✅ Check if it's email
