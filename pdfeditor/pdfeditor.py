@@ -168,102 +168,7 @@ class PDFNameEditor:
             print(f"Method 2 failed: {e}")
             return False
 
-    # def method3_form_field_approach(self, pdf_path: str, first_name: str, middle_name: str, last_name: str, output_path: str) -> bool:
-        """
-        Method 3: Handle PDF forms (if the PDF has form fields)
-        """
-        try:
-            doc = fitz.open(pdf_path)
-            full_name = self._format_full_name(first_name, middle_name, last_name)
-            
-            for page_num in range(len(doc)):
-                page = doc.load_page(page_num)
-                widgets = page.widgets()
-                
-                for widget in widgets:
-                    if widget.field_name and "name" in widget.field_name.lower():
-                        widget.field_value = full_name
-                        widget.update()
-            
-            doc.save(output_path, incremental=False, encryption=fitz.PDF_ENCRYPT_KEEP)
-            doc.close()
-            return True
-            
-        except Exception as e:
-            print(f"Method 3 failed: {e}")
-            return False
-    
-    # def method4_advanced_text_replacement(self, pdf_path: str, first_name: str, middle_name: str, last_name: str, output_path: str) -> bool:
-        """
-        Method 4: Advanced approach with better text matching and replacement
-        """
-        try:
-            doc = fitz.open(pdf_path)
-            full_name = self._format_full_name(first_name, middle_name, last_name)
-            
-            for page_num in range(len(doc)):
-                page = doc.load_page(page_num)
-                blocks = page.get_text("dict")
-                
-                placeholders = ["{{name}}", "XXXX", "{name}", "[name]"]
-                replacements_made = False
-                
-                for block in blocks["blocks"]:
-                    if "lines" in block:
-                        for line in block["lines"]:
-                            for span in line["spans"]:
-                                text = span["text"]
-                                for placeholder in placeholders:
-                                    if placeholder in text:
-                                        font_size = span["size"]
-                                        font_flags = span["flags"]
-                                        bbox = span["bbox"]
-                                        
-                                        redact_rect = fitz.Rect(bbox)
-                                        redact = page.add_redact_annot(redact_rect)
-                                        redact.set_colors(fill=(1, 1, 1))
-                                        redact.update()
-                                        
-                                        new_text = text.replace(placeholder, full_name)
-                                        replacement_info = {
-                                            'rect': bbox,
-                                            'text': new_text,
-                                            'fontsize': font_size,
-                                            'flags': font_flags
-                                        }
-                                        replacements_made = True
-                                        break
-                
-                if replacements_made:
-                    page.apply_redactions()
-                    
-                    blocks = page.get_text("dict")
-                    for block in blocks["blocks"]:
-                        if "lines" in block:
-                            for line in block["lines"]:
-                                for span in line["spans"]:
-                                    text = span["text"]
-                                    for placeholder in placeholders:
-                                        if placeholder in text:
-                                            bbox = span["bbox"]
-                                            font_size = span["size"]
-                                            new_text = text.replace(placeholder, full_name)
-                                            
-                                            page.insert_text(
-                                                point=(bbox[0], bbox[3]),
-                                                text=new_text,
-                                                fontsize=font_size,
-                                                color=(0, 0, 0)
-                                            )
-                                            break
-            
-            doc.save(output_path)
-            doc.close()
-            return True
-            
-        except Exception as e:
-            print(f"Method 4 failed: {e}")
-            return False
+ 
     
     def edit_pdf_name(self, pdf_path: str, first_name: str, middle_name: str = "", last_name: str = "", output_path: str = None) -> str:
         """
@@ -275,19 +180,7 @@ class PDFNameEditor:
             full_name_for_filename = self.format_full_name(first_name, middle_name, last_name).replace(" ", "")
             output_path = f"{base_name}_{full_name_for_filename}_edited.pdf"
         
-        methods = [
-             
-           
-            # ("Direct Text Replacement", self.method1_pymupdf_text_replacement),
-            ("Overlay Approach", self.method2_overlay_approach),
-           
-            #("Direct Text Replacement", self.method1_pymupdf_text_replacement)
-            # ("Form Field Approach", self.method3_form_field_approach),
-            # ("Advanced Text Replacement", self.method4_advanced_text_replacement),
-            
-            
-            
-        ]
+        methods = [("Overlay Approach", self.method2_overlay_approach)]
         
         full_name = self._format_full_name(first_name, middle_name, last_name)
         print(f"Creating certificate for: {full_name}")
