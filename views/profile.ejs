@@ -587,59 +587,6 @@
       
     }
 
-    // Calculate and display statistics
-    function updateStats() {
-      const rows = document.querySelectorAll('#userTable tbody tr');
-      let totalUsers = rows.length;
-      let day1Count = 0;
-      let day2Count = 0;
-      let fullAttendanceCount = 0;
-
-      rows.forEach(row => {
-        const day1Present = row.cells[7].querySelector('.status-present');
-        const day2Present = row.cells[8].querySelector('.status-present');
-
-        if (day1Present) day1Count++;
-        if (day2Present) day2Count++;
-        if (day1Present && day2Present) fullAttendanceCount++;
-      });
-
-      // Animate counter updates
-      animateCounter('totalUsers', totalUsers);
-      animateCounter('day1Attendance', day1Count);
-      animateCounter('day2Attendance', day2Count);
-      animateCounter('fullAttendance', fullAttendanceCount);
-    }
-
-    function animateCounter(elementId, targetValue) {
-      const element = document.getElementById(elementId);
-      const startValue = parseInt(element.textContent) || 0;
-      const increment = targetValue > startValue ? 1 : -1;
-      const duration = 1000;
-      const stepTime = duration / Math.abs(targetValue - startValue);
-
-      let currentValue = startValue;
-      const timer = setInterval(() => {
-        currentValue += increment;
-        element.textContent = currentValue;
-
-        if (currentValue === targetValue) {
-          clearInterval(timer);
-        }
-      }, stepTime);
-    }
-
-    // Search functionality
-    document.getElementById('searchInput').addEventListener('input', function (e) {
-      const searchTerm = e.target.value.toLowerCase();
-      const rows = document.querySelectorAll('#userTable tbody tr');
-
-      rows.forEach(row => {
-        const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(searchTerm) ? '' : 'none';
-      });
-    });
-
     // Initialize stats when page loads
     document.addEventListener('DOMContentLoaded', function () {
       setTimeout(updateStats, 500);
