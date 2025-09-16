@@ -19,6 +19,10 @@
       padding: 0;
       position: relative;
       overflow-x: auto;
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
     }
 
     /* Animated background elements */
@@ -60,6 +64,41 @@
       max-width: 1400px;
       margin: 0 auto;
       padding: 40px 20px;
+    }
+
+    /* Signout button styles */
+    .signout-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      background: rgba(255, 255, 255, 0.9);
+      color: #667eea;
+      text-decoration: none;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(10px);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .signout-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      background: rgba(255, 255, 255, 0.95);
+      color: #5a67d8;
+    }
+
+    .signout-btn:active {
+      transform: translateY(0);
     }
 
     .header {
@@ -133,6 +172,10 @@
       width: 100%;
       min-width: 800px;
       border-collapse: collapse;
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
     }
 
     th {
@@ -148,6 +191,11 @@
       position: sticky;
       top: 0;
       z-index: 10;
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      cursor: default;
     }
 
     td {
@@ -156,6 +204,12 @@
       font-size: 0.95rem;
       color: #334155;
       white-space: nowrap;
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      pointer-events: auto;
+      cursor: default;
     }
 
     tr {
@@ -327,6 +381,13 @@
     padding: 20px 10px;
   }
 
+  .signout-btn {
+    top: 15px;
+    right: 15px;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+
   .header h1 {
     font-size: 2rem;
     margin-bottom: 8px;
@@ -380,6 +441,13 @@
     padding: 15px 5px;
   }
 
+  .signout-btn {
+    top: 10px;
+    right: 10px;
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
+
   .header h1 {
     font-size: 1.5rem;
   }
@@ -430,9 +498,14 @@
 </head>
 
 <body>
+  <!-- Signout Button -->
+  <button class="signout-btn" onclick="signOut()">
+    Sign Out
+  </button>
+
   <div class="container">
     <div class="header">
-      <h1>User Profiles Dashboard </h1>
+      <h1>User Profile </h1>
     </div>
 
     <div class="table-container">
@@ -508,6 +581,12 @@
   </div>
 
   <script>
+    // Sign out function
+    function signOut() {
+        window.location.href = '/'; 
+      
+    }
+
     // Calculate and display statistics
     function updateStats() {
       const rows = document.querySelectorAll('#userTable tbody tr');

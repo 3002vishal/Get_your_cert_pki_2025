@@ -11,7 +11,7 @@ router.get('/', (req, res) => {
 router.post('/profile', async (req, res) => {
     const { identifier } = req.body;
     const repo = AppDataSource.getRepository("Registrant");
-    const isEmail = identifier.includes('@');  // ✅ Check if it's email
+    const isEmail = identifier.includes('@');  //  Check if it's email
 
     try {
         const users = await repo
